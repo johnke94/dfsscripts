@@ -1,0 +1,259 @@
+function HitterNormal(single,double,triple,homer,rbi,run,walk,steal) {
+  
+  var n_single = single * 3;
+  var n_double = double * 6;
+  var n_triple = triple * 9; 
+  var n_homer = homer * 12;
+  var n_rbi = rbi * 3.5;
+  var n_run = run * 3.2;
+  var n_walk = walk * 3;
+  var n_steal = steal * 6;
+  var n_hbp = 0.01 * 3;
+  
+  var result = n_single + n_double + n_triple + n_homer + n_rbi + n_run + n_walk + n_steal + n_hbp;
+  
+  return result;
+  
+}
+
+function AvgStat(stat,proj) {
+  
+  var result = stat * proj/9;
+  
+  return result;
+  
+}
+
+function PitcherNormal(win,er,so,ip) {
+  
+  var n_win = win * 6;
+  var n_qs = 0;
+  var n_er = er * -3;
+  var n_ip = ip * 3;
+  var n_so = so * 3;
+  
+  if (ip > 6 && er <= 3) {
+    n_qs = 4;
+  }
+  
+  var result = n_win + n_qs + n_er + n_ip + n_so;
+  
+  return result;
+  
+}
+
+function StatProj(G,single,double,triple,homer,rbi,run,walk,iwalk,steal,hbp){
+  
+  var exp_single = single/G * 3;
+  var exp_double = double/G * 6;
+  var exp_triple = triple/G * 9;
+  var exp_homer = homer/G * 12;
+  var exp_rbi = rbi/G * 3.5;
+  var exp_run = run/G * 3.2;
+  var exp_walk = (walk + iwalk)/G * 3;
+  var exp_steal = steal/G * 6;
+  var exp_hbp = hbp/G * 3;
+  
+  var result = exp_single + exp_double + exp_triple + exp_homer + exp_rbi + exp_run + exp_walk + exp_steal + exp_hbp;
+  
+  return result;
+
+}
+
+function SheetMatch (name, pos, index) {
+  
+  var i;
+  var found;
+  var match;
+  var r_index;
+  
+  var ss = SpreadsheetApp.getActive();
+  var s_sheet;
+  
+  if (pos == 'P') {
+    s_sheet = ss.getSheetByName('Pitchers');
+    }
+    else if (pos == '1B') {
+    s_sheet = ss.getSheetByName('First Base');
+    }
+    else if (pos == '2B') {
+    s_sheet = ss.getSheetByName('Second Base');
+    }
+    else if (pos == '3B') {
+    s_sheet = ss.getSheetByName('Third Base');
+    }
+    else if (pos == 'SS') {
+    s_sheet = ss.getSheetByName('Shortstop');
+    }
+    else if (pos == 'C') {
+    s_sheet = ss.getSheetByName('Catcher');
+    }
+    else if (pos == 'OF') {
+    s_sheet = ss.getSheetByName('Outfield');
+    }
+  
+  if (pos == 'P'){
+    r_index = index + 35;
+  } 
+  else {
+    r_index = index + 40;
+  }
+  
+  var searchData = s_sheet.getDataRange().getValues();
+  
+  for (i = 0; i < searchData.length; i++) {
+    
+    match = searchData[i][1];
+    
+    if (name == match) {
+      found = searchData[i][r_index];
+    }
+  }
+  
+  return found;
+}
+
+function SheetNameMatch (pos) {
+  
+  var ss = SpreadsheetApp.getActive();
+  var s_sheet;
+  
+  if (pos == 'P') {
+    s_sheet = ss.getSheetByName('Pitchers');
+    }
+    else if (pos == '1B') {
+    s_sheet = ss.getSheetByName('First Base');
+    }
+    else if (pos == '2B') {
+    s_sheet = ss.getSheetByName('Second Base');
+    }
+    else if (pos == '3B') {
+    s_sheet = ss.getSheetByName('Third Base');
+    }
+    else if (pos == 'SS') {
+    s_sheet = ss.getSheetByName('Shortstop');
+    }
+    else if (pos == 'C') {
+    s_sheet = ss.getSheetByName('Catcher');
+    }
+    else if (pos == 'OF') {
+    s_sheet = ss.getSheetByName('Outfield');
+    }
+  
+  return s_sheet.getData().getValues();
+}
+  
+
+function SheetMatchArray() {
+  
+  var i;
+  var j;
+  var k;
+  var searchref;
+  var searchstat;
+  var key;
+  var found = [];
+  var s_sheet;
+  var searchData;
+  var r_index;
+  var ss = SpreadsheetApp.getActive();
+  
+  var pitch_Data = ss.getSheetByName('Pitchers').getDataRange().getValues();
+  var first_Data = ss.getSheetByName('First Base').getDataRange().getValues();
+  var second_Data = ss.getSheetByName('Second Base').getDataRange().getValues();
+  var third_Data = ss.getSheetByName('Third Base').getDataRange().getValues();
+  var short_Data = ss.getSheetByName('Shortstop').getDataRange().getValues();
+  var catch_Data = ss.getSheetByName('Catcher').getDataRange().getValues();
+  var of_Data = ss.getSheetByName('Outfield').getDataRange().getValues();  
+  
+  var pos = getStatArray(1);
+  var name = getStatArray(3);
+  
+  for (i = 0; i < pos.length; i++) {
+    
+    if (pos[i] == 'P') {
+      r_index = 35;
+      searchData = pitch_Data;
+    } 
+    else {
+      r_index = 40;
+      
+        if (pos[i] == '1B') {
+          searchData = first_Data;
+        } else if (pos[i] == '2B') {
+          searchData = second_Data;
+        } else if (pos[i] == '3B') {
+          searchData = third_Data;
+        } else if (pos[i] == 'SS') {
+          searchData = short_Data;
+        } else if (pos[i] == 'C') {
+          searchData = catch_Data;
+        } else if (pos[i] == 'OF') {
+          searchData = of_Data;
+        }
+    }      
+           
+    key = name[i];
+    found[i] = 0;
+      
+    for (k = 0; k < searchData.length; k++) {
+        
+      searchref = searchData[k][1];
+      searchstat = searchData[k][r_index];
+            
+      if (key == searchref && searchref != "" && searchstat != "") {
+        found[i] = searchData[k][r_index];
+        break;
+      }
+    }
+  }
+  
+  return found;
+  
+}
+
+function getNameArray() {
+  
+  var i;
+  var key = 3;
+   
+  var found = [];
+  var ssheet = SpreadsheetApp.getActive().getSheetByName('Raw Fanduel Data');
+  var searchData = ssheet.getDataRange().getValues();
+  
+  for (i = 0; i < searchData.length; i++) {
+    if (searchData[i+1][key] != '') {
+      found[i] = searchData[i+1][key];
+    } else {break}
+  }
+       
+  return found;
+}
+ 
+
+function getStatArray(key) {
+  
+  var i;
+     
+  var found = [];
+  var ssheet = SpreadsheetApp.getActive().getSheetByName('Raw Fanduel Data');
+  var searchData = ssheet.getDataRange().getValues();
+  
+  for (i = 0; i < searchData.length; i++) {
+    if (searchData[i+1][key] != '') {
+      found[i] = searchData[i+1][key];
+    } else {break}
+  }
+       
+  return found;
+}
+  
+  
+          
+   
+      
+      
+      
+  
+  
+  
