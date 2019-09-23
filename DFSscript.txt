@@ -1,3 +1,22 @@
+/* Trigger to put a random number in the import sheets, in order to get around the Google cache issue
+*/
+
+function onOpen(e){
+  
+  SpreadsheetApp.getUi().createMenu('Rand').addItem('New Rand', 'changeRandValue').addToUi();
+  
+}
+
+
+function changeRandValue(){
+  
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Pitcher Import").getRange('V1').setValue(Math.random()*10);
+  
+}
+
+/* Calculates a potential score for hitters
+*/
+
 function HitterNormal(single,double,triple,homer,rbi,run,walk,steal) {
   
   var n_single = single * 3;
@@ -16,15 +35,11 @@ function HitterNormal(single,double,triple,homer,rbi,run,walk,steal) {
   
 }
 
-function AvgStat(stat,proj) {
-  
-  var result = stat * proj/9;
-  
-  return result;
-  
-}
+/* Calculates fanduel projection for pitchers
+*/
 
 function PitcherNormal(win,er,so,ip) {
+  
   
   var n_win = win * 6;
   var n_qs = 0;
@@ -42,7 +57,44 @@ function PitcherNormal(win,er,so,ip) {
   
 }
 
+/* Same function as PitcherNormal. 
+Instead of calculating per player, calculates based on an array of player names. */
+
+function PitcherNormalArray (win, er, so, ip) {
+  
+  var name_data = getStatArray(1, "Pitchers");
+  var result = [];
+  var n_win;
+  var n_qs;
+  var n_er;
+  var n_ip;
+  var n_so;
+  var i;
+  
+  for (i = 0; i < name_data.length; i++) {
+    
+    n_win = win[i] * 6;
+    n_er = er[i] * -3;
+    n_ip = ip[i] * 3;
+    n_so = so[i] * 3;
+  
+    if (ip[i] > 6 && er[i] <= 3) {
+      n_qs = 4;
+    } else n_qs = 0;
+  
+    result[i] = n_win + n_qs + n_er + n_ip + n_so;
+  }
+  
+  return result;
+}
+    
+
+/* Calculates fanduel project for batters based on raw stats
+*/
+
 function StatProj(G,single,double,triple,homer,rbi,run,walk,iwalk,steal,hbp){
+  
+  
   
   var exp_single = single/G * 3;
   var exp_double = double/G * 6;
@@ -60,100 +112,64 @@ function StatProj(G,single,double,triple,homer,rbi,run,walk,iwalk,steal,hbp){
 
 }
 
-function SheetMatch (name, pos, index) {
+/* Similar functionality to StatProj, but instead calculates based on array of batter names.
+*/
+
+
+function BatterStatProjArray(pos,G,single,double,triple,homer,rbi,run,walk,iwalk,steal,hbp){
   
+  var exp_single;
+  var exp_double;
+  var exp_triple;
+  var exp_homer;
+  var exp_rbi;
+  var exp_run;
+  var exp_walk;
+  var exp_steal;
+  var exp_hbp;
+  var result = [];
   var i;
-  var found;
-  var match;
-  var r_index;
+  var proj;
   
-  var ss = SpreadsheetApp.getActive();
-  var s_sheet;
+  var sheetname = getPosSheetName(pos);
   
-  if (pos == 'P') {
-    s_sheet = ss.getSheetByName('Pitchers');
-    }
-    else if (pos == '1B') {
-    s_sheet = ss.getSheetByName('First Base');
-    }
-    else if (pos == '2B') {
-    s_sheet = ss.getSheetByName('Second Base');
-    }
-    else if (pos == '3B') {
-    s_sheet = ss.getSheetByName('Third Base');
-    }
-    else if (pos == 'SS') {
-    s_sheet = ss.getSheetByName('Shortstop');
-    }
-    else if (pos == 'C') {
-    s_sheet = ss.getSheetByName('Catcher');
-    }
-    else if (pos == 'OF') {
-    s_sheet = ss.getSheetByName('Outfield');
-    }
+  var name_data = getStatArray(1, sheetname);  
   
-  if (pos == 'P'){
-    r_index = index + 35;
-  } 
-  else {
-    r_index = index + 40;
+  for (i = 0; i < name_data.length; i++) {
+    
+    exp_single = single[i]/G[i] * 3;
+    exp_double = double[i]/G[i] * 6;
+    exp_triple = triple[i]/G[i] * 9;
+    exp_homer = homer[i]/G[i] * 12;
+    exp_rbi = rbi[i]/G[i] * 3.5;
+    exp_run = run[i]/G[i] * 3.2;
+    exp_walk = (walk[i]/G[i] + iwalk[i]/G[i])*3;
+    exp_steal = steal[i]/G[i] * 6;
+    exp_hbp = hbp[i]/G[i] * 3;
+  
+    proj = exp_single + exp_double + exp_triple + exp_homer + exp_rbi + exp_run + exp_walk + exp_steal + exp_hbp;
+    
+    if (isNaN(proj)) {
+      result[i] = "";
+    } else result[i] = proj;
+    
   }
   
-  var searchData = s_sheet.getDataRange().getValues();
-  
-  for (i = 0; i < searchData.length; i++) {
-    
-    match = searchData[i][1];
-    
-    if (name == match) {
-      found = searchData[i][r_index];
-    }
-  }
-  
-  return found;
+  return result;
 }
 
-function SheetNameMatch (pos) {
-  
-  var ss = SpreadsheetApp.getActive();
-  var s_sheet;
-  
-  if (pos == 'P') {
-    s_sheet = ss.getSheetByName('Pitchers');
-    }
-    else if (pos == '1B') {
-    s_sheet = ss.getSheetByName('First Base');
-    }
-    else if (pos == '2B') {
-    s_sheet = ss.getSheetByName('Second Base');
-    }
-    else if (pos == '3B') {
-    s_sheet = ss.getSheetByName('Third Base');
-    }
-    else if (pos == 'SS') {
-    s_sheet = ss.getSheetByName('Shortstop');
-    }
-    else if (pos == 'C') {
-    s_sheet = ss.getSheetByName('Catcher');
-    }
-    else if (pos == 'OF') {
-    s_sheet = ss.getSheetByName('Outfield');
-    }
-  
-  return s_sheet.getData().getValues();
-}
-  
 
-function SheetMatchArray() {
+/* Returns an array that has all the fanduel projections from each sheet
+*/
+
+function projMatchArray(dummy) {
   
   var i;
-  var j;
   var k;
   var searchref;
   var searchstat;
   var key;
   var found = [];
-  var s_sheet;
   var searchData;
   var r_index;
   var ss = SpreadsheetApp.getActive();
@@ -164,19 +180,23 @@ function SheetMatchArray() {
   var third_Data = ss.getSheetByName('Third Base').getDataRange().getValues();
   var short_Data = ss.getSheetByName('Shortstop').getDataRange().getValues();
   var catch_Data = ss.getSheetByName('Catcher').getDataRange().getValues();
-  var of_Data = ss.getSheetByName('Outfield').getDataRange().getValues();  
+  var of_Data = ss.getSheetByName('Outfield').getDataRange().getValues(); 
   
-  var pos = getStatArray(1);
-  var name = getStatArray(3);
+  
+  
+  var pos = getStatArray(1, "Raw Fanduel Data");
+  var name = getStatArray(3, "Raw Fanduel Data");
+  
+ 
   
   for (i = 0; i < pos.length; i++) {
     
     if (pos[i] == 'P') {
-      r_index = 35;
+      r_index = 37;
       searchData = pitch_Data;
     } 
     else {
-      r_index = 40;
+      r_index = 41;
       
         if (pos[i] == '1B') {
           searchData = first_Data;
@@ -212,48 +232,262 @@ function SheetMatchArray() {
   
 }
 
-function getNameArray() {
-  
-  var i;
-  var key = 3;
-   
-  var found = [];
-  var ssheet = SpreadsheetApp.getActive().getSheetByName('Raw Fanduel Data');
-  var searchData = ssheet.getDataRange().getValues();
-  
-  for (i = 0; i < searchData.length; i++) {
-    if (searchData[i+1][key] != '') {
-      found[i] = searchData[i+1][key];
-    } else {break}
-  }
-       
-  return found;
-}
- 
+/* returns a single column array based on key and sheet name
+*/
 
-function getStatArray(key) {
+function getStatArray(key, sheetName, dummy) {
   
   var i;
      
   var found = [];
-  var ssheet = SpreadsheetApp.getActive().getSheetByName('Raw Fanduel Data');
-  var searchData = ssheet.getDataRange().getValues();
-  
-  for (i = 0; i < searchData.length; i++) {
-    if (searchData[i+1][key] != '') {
-      found[i] = searchData[i+1][key];
+  var ss = SpreadsheetApp.getActive().getSheetByName(sheetName);
+  var searchData = ss.getDataRange().getValues();
+     
+  for (i = 1; i < searchData.length; i++) {
+    
+    found[i-1] = 0;
+    
+    if (searchData[i][key] != '') {
+      found[i-1] = searchData[i][key];
+      
     } else {break}
   }
-       
+  
   return found;
 }
+
+/* refreshes the sheet import of pitcher stats
+*/
   
+function refreshPitcher(dummy) {
   
-          
+  var ss_import = SpreadsheetApp.openById("1Y7Wgc5j1r1tBzQYKn-O_OIQsDE3ODOYheZGTSoE2tFQ");
+  var sheet_import = ss_import.getSheetByName("Pitchers Import");
+  var ss_replace = SpreadsheetApp.getActive();
+  var sheet_replace = ss_replace.getSheetByName("Pitcher Import");
+  
+  var import_range = sheet_import.getDataRange().getValues();
+  var range_length = import_range.length;
+  
+  SpreadsheetApp.flush();
+  
+  sheet_replace.getRange(1, 1, range_length, 20);
+}
+
+/* refreshes the sheet import of batter stats
+*/
+  
+function refreshBatter(dummy) {
+  
+  var ss_import = SpreadsheetApp.openById("1Y7Wgc5j1r1tBzQYKn-O_OIQsDE3ODOYheZGTSoE2tFQ");
+  var sheet_import = ss_import.getSheetByName("Batters Import");
+  var ss_replace = SpreadsheetApp.getActive();
+  var sheet_replace = ss_replace.getSheetByName("Batter Import");
+  
+  var import_range = sheet_import.getDataRange().getValues();
+  var range_length = import_range.length;
+  
+  SpreadsheetApp.flush();
+  
+  sheet_replace.getRange(1, 1, range_length, 43);
+}
+
+/* returns pitchers stats info based on array of pitcher names
+*/
+
+function pitcherStatArray(dummy) {
+  
+  var i;
+  var k;
+  var j;
+  var searchref;
+  var searchstat;
+  var key;
+  var found = [];
+  var ss = SpreadsheetApp.getActive(); 
+  
+  var name = getStatArray(1, "Pitchers");
+  var pitchData = ss.getSheetByName("Pitcher Import").getRange(1, 1, 66, 20).getValues();
+  
+  for (i = 0; i < name.length; i++) {    
+           
+    key = name[i];
+    found[i] = ["N/A"];
+      
+    for (k = 0; k < pitchData.length; k++) {
+        
+      searchref = pitchData[k][1];
+      searchstat = pitchData[k];
+            
+      if (key == searchref && searchref != "" && searchstat != []) {
+        
+        for (j = 7; j < searchstat.length; j++) {
+           
+          found[i][j-7] = pitchData[k][j];
+         
+        }
+        break;
+      }
+    }
+  }
+  
+  return found;
+  
+}       
    
+/* returns pitchers projection info based on array of pitchers names
+*/
+
+function pitcherProjArray(dummy) {
+  
+  var i;
+  var k;
+  var j;
+  var searchref;
+  var searchstat;
+  var key;
+  var found = [];
+  var ss = SpreadsheetApp.getActive(); 
+  
+  var name = getStatArray(1, "Pitchers");
+  var pitchData = ss.getSheetByName("Pitcher Import").getRange(68, 1, 66, 16).getValues();
+  
+  for (i = 0; i < name.length; i++) {    
+           
+    key = name[i];
+    found[i] = ["N/A"];
       
+    for (k = 0; k < pitchData.length; k++) {
+        
+      searchref = pitchData[k][0];
+      searchstat = pitchData[k];
+            
+      if (key == searchref && searchref != "" && searchstat != []) {
+        
+        for (j = 3; j < searchstat.length-1; j++) {
+           
+          found[i][j-3] = pitchData[k][j];
+         
+        }
+        break;
+      }
+    }
+  }
+  
+  return found;
+  
+} 
+
+/* returns batter stat info
+*/
+
+function batterStatArray(pos, dummy) {
+  
+  var i;
+  var k;
+  var j;
+  var searchref;
+  var searchstat;
+  var key;
+  var found = [];
+  var ss = SpreadsheetApp.getActive(); 
+  var posname = getPosSheetName(pos);
+  
+  var name = getStatArray(1, posname);
+  var battData = ss.getSheetByName("Batter Import").getRange(1, 21, 600, 23).getValues();
+  
+  for (i = 0; i < name.length; i++) {    
+           
+    key = name[i];
+    found[i] = ["N/A"];
       
-      
+    for (k = 0; k < battData.length; k++) {
+        
+      searchref = battData[k][1];
+      searchstat = battData[k];
+            
+      if (key == searchref && searchref != "" && searchstat != []) {
+        
+        for (j = 3; j < searchstat.length; j++) {
+           
+          found[i][j-3] = battData[k][j];
+         
+        }
+        break;
+      }
+    }
+  }
+  
+  return found;
+  
+}       
+   
+/* returns batters projection info
+*/
+
+function batterProjArray(pos, dummy) {
+  
+  var i;
+  var k;
+  var j;
+  var searchref;
+  var searchstat;
+  var key;
+  var found = [];
+  var ss = SpreadsheetApp.getActive(); 
+  var posname = getPosSheetName(pos);
+  
+  var name = getStatArray(1, posname);
+  var battData = ss.getSheetByName("Batter Import").getRange(1, 1, 600, 18).getValues();
   
   
+  for (i = 0; i < name.length; i++) {    
+           
+    key = name[i];
+    found[i] = ["N/A"];
+      
+    for (k = 0; k < battData.length; k++) {
+        
+      searchref = battData[k][0];
+      searchstat = battData[k];
+            
+      if (key == searchref && searchref != "" && searchstat != []) {
+        
+        for (j = 4; j < searchstat.length; j++) {
+           
+          found[i][j-4] = battData[k][j];
+         
+        }
+        break;
+      }
+    }
+  }
   
+  return found;
+  
+} 
+
+/* returns position sheet name based on position
+*/
+
+function getPosSheetName(pos){
+  
+  var sheetName;
+  
+  if (pos == "1B") {
+    sheetName = "First Base";
+  } else if (pos == "2B") {
+    sheetName = "Second Base";
+  } else if (pos == "3B") {
+    sheetName = "Third Base";
+  } else if (pos == "C") {
+    sheetName = "Catcher";
+  } else if (pos == "SS") {
+    sheetName = "Shortstop";
+  } else if (pos == "OF") {
+    sheetName = "Outfield";
+  }
+  
+  return sheetName;
+}
+
