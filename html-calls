@@ -1,0 +1,79 @@
+/* Refreshes tables 
+/* Will temporarily change cell text
+/* @param sheetName: String Name needs to be present in formula
+/* @param row: Int
+/* @param col: Int
+*/
+
+function onOpen(e){
+  
+  SpreadsheetApp.getUi().createMenu('Refresh').addItem('Refresh Cells', 'fullRefresh').addToUi();
+  
+}
+
+function cellRefresh(sheetName, row, col, dummy) {
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  var origF = sheet.getRange(row,col).getFormula();
+  var tempF = origF.replace("=","?");
+  
+  sheet.getRange(row,col).setFormula(tempF);
+  SpreadsheetApp.flush();
+  sheet.getRange(row,col).setFormula(origF);
+}
+
+
+function fullRefresh(){
+  
+  var d = new Date();
+  var time = d.toLocaleTimeString();
+  var day = d.toLocaleDateString();
+  
+  var cell = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Pitchers Links').getRange("D1");
+  cell.setValue('The last refresh was at ' + time + " on " + day);
+    
+  var dummy = Math.random();
+  
+  cellRefresh("Pitchers Import", 1, 1, dummy);
+  cellRefresh("Pitchers Import", 34, 1, dummy);
+  cellRefresh("Pitchers Import", 68, 1, dummy);
+  cellRefresh("Pitchers Import", 102, 1, dummy);
+  
+  cellRefresh("Batters Import", 1, 1, dummy);
+  cellRefresh("Batters Import", 34, 1, dummy);
+  cellRefresh("Batters Import", 67, 1, dummy);
+  cellRefresh("Batters Import", 100, 1, dummy);
+  cellRefresh("Batters Import", 133, 1, dummy);
+  cellRefresh("Batters Import", 166, 1, dummy);
+  cellRefresh("Batters Import", 199, 1, dummy);
+  cellRefresh("Batters Import", 225, 1, dummy);
+  cellRefresh("Batters Import", 257, 1, dummy);
+  cellRefresh("Batters Import", 290, 1, dummy);
+  cellRefresh("Batters Import", 358, 1, dummy);
+  cellRefresh("Batters Import", 392, 1, dummy);
+  cellRefresh("Batters Import", 426, 1, dummy);
+  cellRefresh("Batters Import", 460, 1, dummy);
+  cellRefresh("Batters Import", 494, 1, dummy);
+  cellRefresh("Batters Import", 528, 1, dummy);
+  cellRefresh("Batters Import", 562, 1, dummy);
+  
+  cellRefresh("Batters Import", 1, 21, dummy);
+  cellRefresh("Batters Import", 34, 21, dummy);
+  cellRefresh("Batters Import", 67, 21, dummy);
+  cellRefresh("Batters Import", 100, 21, dummy);
+  cellRefresh("Batters Import", 133, 21, dummy);
+  cellRefresh("Batters Import", 166, 21, dummy);
+  cellRefresh("Batters Import", 199, 21, dummy);
+  cellRefresh("Batters Import", 225, 21, dummy);
+  cellRefresh("Batters Import", 257, 21, dummy);
+  cellRefresh("Batters Import", 290, 21, dummy);
+  cellRefresh("Batters Import", 358, 21, dummy);
+  cellRefresh("Batters Import", 392, 21, dummy);
+  cellRefresh("Batters Import", 426, 21, dummy);
+  cellRefresh("Batters Import", 460, 21, dummy);
+  cellRefresh("Batters Import", 494, 21, dummy);
+  cellRefresh("Batters Import", 528, 21, dummy);
+  cellRefresh("Batters Import", 562, 21, dummy);
+  
+}
